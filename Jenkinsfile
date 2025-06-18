@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         EC2_HOST = 'ubuntu@54.200.146.243'        // 너의 chat 서버 IP
-        EC2_DIR = '/home/ubuntu/cluvr-chat'       // EC2 내부에서 git clone 받은 위치
+        EC2_DIR = '/home/ubuntu/spring'       // EC2 내부에서 git clone 받은 위치
     }
 
     stages {
