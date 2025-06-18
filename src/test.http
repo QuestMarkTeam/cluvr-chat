@@ -1,0 +1,62 @@
+### 채팅방 생성
+POST http://localhost:8082/chat/create
+Content-Type: application/json
+
+{
+  "clubId": 1,
+  "type": "MANAGER",
+  "userId": 1001,
+  "imageUrl": "test",
+  "name": "방 1",
+  "role": "LEADER"
+}
+
+### 채팅방 생성 - MEMBER 타입
+POST http://localhost:8082/chat/create
+Content-Type: application/json
+
+{
+  "clubId": 1,
+  "type": "MEMBER",
+  "userId": 1002,
+  "imageUrl": "test_member.png",
+  "name": "멤버 전용방",
+  "role": "MEMBER"
+}
+
+### 채팅방 조회
+POST http://localhost:8082/club/1/chat/list
+Content-Type: application/json
+
+{
+  "userId": 1003,
+  "role": "LEADER"
+}
+
+### 채팅방 조회 - MEMBER 권한
+POST http://localhost:8082/club/1/chat/list
+Content-Type: application/json
+
+{
+  "userId": 1004,
+  "role": "MEMBER"
+}
+
+### 채팅방 대화 조회
+GET http://localhost:8082/club/1/chat/1
+
+### 채팅방 조인
+POST http://localhost:8082/club/1/chat/join
+Content-Type: application/json
+
+{
+  "userId": 1003
+}
+
+### 권한 없는 사용자 테스트
+POST localhost:8082/club/1/chat/join
+Content-Type: application/json
+
+{
+  "userId": 9999
+}

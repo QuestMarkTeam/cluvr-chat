@@ -1,0 +1,98 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'checkstyle'
+
+}
+
+checkstyle {
+    // 규칙이 어긋나는 코드가 하나라도 있을 경우 빌드 fail을 내고 싶다면 이 선언을 추가
+    maxWarnings = 0
+    //rule 및 suppressions xml파일 위치 명시
+    configFile = file("${rootDir}/naver-checkstyle-rules.xml")
+    configProperties = ["suppressionFile": "${rootDir}/naver-checkstyle-suppressions.xml"]
+    // checkstyle 버전 8.24 이상 선언
+    toolVersion = "8.24"
+    ignoreFailures = true // 빌드 실패 x 경고만
+
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+tasks.bootJar {
+    enabled = true
+}
+
+tasks.named('bootJar') {
+    mainClass.set("com.example.Main")  // 실제 메인 클래스로 변경
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // MongoDB 추가
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // WebSocket + STOMP
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // MySQL
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'  // JPA 사용
+    runtimeOnly 'com.mysql:mysql-connector-j'  // MySQL JDBC 드라이버
+
+    // 유효성 검사 validation
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+    // jwt JJWT 버전 보안 이슈 미해결
+    //0.11.5 → 0.12.x 업그레이드 권고가 반영되지 않았습니다. 기존 리뷰와 동일한 내용입니다.
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3' // jjwt-api 라이브러리 버전 지정
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3' // jjwt-impl 라이브러리 버전 지정 (런타임에만 필요)
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3' // jjwt-jackson 라이브러리 버전 지정 (Jackson과 연동할 때 필요)
+
+    // RabbitMQ (Spring AMQP)
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+    // JSON 직렬화 (RabbitMQ 메시지용)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // JSON 직렬화
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // RabbitMQ (Spring AMQP)
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+    // JSON 직렬화 (RabbitMQ 메시지용)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

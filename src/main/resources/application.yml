@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: cluvr-chat
+  data:
+    mongodb: # MongoDB : cahtdb라는 데이터베이스에 연결하고, localhost:27017 위치에 MongoDB가 떠 있다고 설정
+      database: chatdb
+      host: cluvr-mongo
+      port: 27017
+    redis: # Redis : localhost:6379 주소로 Redis 서버에 접속한다는 뜻, 주로 Pub/Sub, 캐시 등에 사용
+      host: redis
+      port: 6379
+  datasource: # MySQL : cluvr-chat DB에 root 계정으로 접속, 시간대는 서울로 지정
+    url: jdbc:mysql://mysql:3306/cluvr-chat?allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 1100
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa: # Spring Data JPA 설정
+    hibernate:
+      ddl-auto: update # Entity 클래스에 따라 DB 테이블 자동 업데이트
+    show-sql: true # 실행되는 SQL문 콘솔에 출력
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  kafka: # Kafka : kafka:9092에 Kafka 브로커가 뜬 상태여야 함. chat-group 이라는 소비자 그룹이 메세지를 소비하게 됨
+    bootstrap-servers: kafka:9092
+    consumer: # Kafka에서 메세지를 읽어오는 쪽(수신자) 설정
+      group-id: chat-group # 여러 Cunsumer들이 하나의 팀으로 묶일 수 있도록 그룹 ID를 지정, 같은 그룹에 속한 Cunsumer는 서로 다른 메세지를 나눠서 소비(병렬 처리)
+      auto-offset-reset: earliest  # 메세지를 어디섭터 읽을지 정함, earliest(이전에 읽은 기록(offset)이 없으면 가장 처음 메세지부터 읽음), latest(가장 최근 메세지부터 읽음)
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer # Kafka에서 받은 데이터를 Java 객체로 변환할 때 사용하는 클래스(String으로 보내고 받기 때문에 StringDeserializer 사용)
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer: # 메세지를 보내는 쪽 설정 (발신자)
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer # Java 객체를 Kafka로 전송할 때 byte 형태로 변환하는 방식
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+server: # chat 서버가 8082 포트로 실행된다는 의미, http://localhost:8082로 접근하면 이 서버
+  port: 8082
+#jwt:
+#  secret:
+#    key: "7JWI64WV7ZWY7IS47JqU7KCA64qU67mg66W47IaN64+E66Gc7YWM7Iqk7YyF7J2E7JyE7ZW0656c642k66y47J6Q7Je07J2E7IOd7ISx7ZWY64qU66y47J6l7J2E7J6R7ISx7KSR7J24642w7JqU"
+#  expirationMs: 3600000
+external:
+  club_api: # 외부 클럽 API 서버 주소 설정, 이 주소로 RestTemplate 같은 걸로 요청 보냄
+    base_url: http://localhost:8080
+logging:
+  level:
+    root: DEBUG
+    org.springframework: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+app:
+  user-dummy-external: true # Prod에서는 false

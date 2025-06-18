@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cluvr 채팅방</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .input-section {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #e1e5f2;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            font-weight: 500;
+            color: #555;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px 15px;
+            border: 2px solid #e1e5f2;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .chat-rooms-section {
+            margin: 25px 0;
+        }
+
+        .chat-rooms-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .room-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .room-btn {
+            background: #fff;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .room-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            margin: 30px 0;
+            border: none;
+        }
+
+        .chat-container {
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        #chatBox {
+            height: 350px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9ff;
+            border-bottom: 1px solid #e1e5f2;
+        }
+
+        #chatBox::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #chatBox::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        #chatBox::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .chat {
+            margin-bottom: 15px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .me {
+            text-align: right;
+        }
+
+        .me .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+
+        .other {
+            text-align: left;
+        }
+
+        .other .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e1e5f2;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin: 2px 0;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .system {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+
+        .message-input-container {
+            display: flex;
+            padding: 15px 20px;
+            background: white;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e5f2;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #messageInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            min-width: auto;
+        }
+
+        .create-room-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #e1e5f2;
+        }
+
+        .create-room-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .input-group, .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .input-group label, .form-row label {
+                min-width: auto;
+            }
+
+            input[type="text"], input[type="number"] {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .room-list {
+                justify-content: center;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>💬 Cluvr 채팅방</h2>
+
+    <!-- 사용자 정보 입력 -->
+    <div class="input-section">
+        <div class="input-group">
+            <label>클럽 ID:</label>
+            <input type="number" id="clubId" value="1">
+            <label>내 ID:</label>
+            <input type="number" id="userId" value="1001">
+            <button onclick="fetchChatRooms()">📜 채팅방 불러오기</button>
+        </div>
+    </div>
+
+    <!-- 채팅방 목록 -->
+    <div id="chatRoomList" class="chat-rooms-section"></div>
+
+    <!-- 채팅방 생성 -->
+    <hr class="divider">
+    <div class="create-room-section">
+        <h3>📁 채팅방 생성</h3>
+        <div class="form-row">
+            <label>방 이름:</label>
+            <input type="text" id="roomName">
+        </div>
+        <div class="form-row">
+            <label>이미지 URL:</label>
+            <input type="text" id="imageUrl">
+        </div>
+        <div class="form-row">
+            <label>방 타입:</label>
+            <input type="text" id="roomType" value="MEMBER" placeholder="MANAGER / MEMBER">
+            <button onclick="createChatRoom()">➕ 채팅방 생성</button>
+        </div>
+    </div>
+
+    <!-- 채팅창 -->
+    <hr class="divider">
+    <div class="chat-container">
+        <div class="chat-header">💬 채팅</div>
+        <div id="chatBox"></div>
+        <div class="message-input-container">
+            <input type="text" id="messageInput" placeholder="메시지를 입력하세요">
+            <button class="send-btn" onclick="sendMessage()">📤</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentRoomId = null;
+    let clubId = null;
+    let userId = null;
+    let stompClient = null;
+    let socket = null;
+    let currentSubscription = null;
+    const API_BASE_URL = window.location.hostname == 'localhost' ? 'http://localhost:8082' : 'http://api.cluvr.com';
+
+    function joinChatRoom(clubId, userId) {
+        const requestBody = {
+            clubId: clubId,
+            userId: userId
+        };
+
+        return fetch(`${API_BASE_URL}/chat/join`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(requestBody)
+        }).catch(error => {
+            console.error('채팅방 입장 실패: ', error);
+            showNotification('채팅방 입장에 실패했습니다.', 'error');
+        });
+    }
+
+    document.getElementById("messageInput").addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+
+    function connectSocketAndSubscribe(roomId) {
+        clubId = parseInt(document.getElementById("clubId").value);
+        userId = parseInt(document.getElementById("userId").value);
+
+        // 이전 구독 해제
+        if (currentSubscription) {
+            currentSubscription.unsubscribe();
+        }
+
+        // 채팅창 비우기
+        const chatBox = document.getElementById("chatBox");
+        chatBox.innerHTML = "";
+
+        // 연결 상태에 따라 소켓 연결 관리
+        if (stompClient && stompClient.connected) {
+            stompClient.disconnect(() => {
+                console.log("Disconnected previous STOMP connection.");
+                startNewConnection();
+            });
+        } else {
+            startNewConnection();
+        }
+
+        // Helper function for connection & subscription
+        function startNewConnection() {
+            socket = new SockJS(`${API_BASE_URL}/cluvr-chat`);
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, () => {
+                joinChatRoom(clubId, userId).then(() => {
+                    currentRoomId = roomId;
+
+                    currentSubscription = stompClient.subscribe(`/sub/chat/room/${roomId}`, function (message) {
+                        const msgObj = JSON.parse(message.body);
+                        renderMessage(msgObj);
+                    });
+
+                    fetch(`${API_BASE_URL}/chat/${roomId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            const chatBox = document.getElementById("chatBox");
+                            chatBox.innerHTML = "";
+                            if (data.data && Array.isArray(data.data)) {
+                                data.data.forEach(renderMessage);
+                            }
+                        }).catch(error => {
+                        console.error('채팅방 입장 실패: ', error);
+                        showNotification('채팅방 입장에 실패했습니다.', 'error');
+                    });
+                });
+            });
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function renderMessage(message) {
+        const chatBox = document.getElementById("chatBox");
+        const msgDiv = document.createElement("div");
+
+        if (message.type === "ENTER" || message.type === "LEAVE") {
+            msgDiv.className = "chat system";
+            msgDiv.textContent = escapeHtml(message.message);
+        } else {
+            msgDiv.className = `chat ${parseInt(message.userId) === parseInt(userId) ? "me" : "other"}`;
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+            bubble.innerHTML = `<strong>${escapeHtml(message.nickname)}</strong><br>${escapeHtml(message.message)}`;
+            msgDiv.appendChild(bubble);
+        }
+
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function fetchChatRooms() {
+        const clubId = parseInt(document.getElementById("clubId").value);
+        userId = parseInt(document.getElementById("userId").value);
+
+        fetch(`${API_BASE_URL}/chat/list`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({clubId, userId})
+        })
+            .then(res => res.json())
+            .then(data => {
+                const roomListDiv = document.getElementById("chatRoomList");
+                roomListDiv.innerHTML = "<h3>📦 채팅방 리스트</h3><div class='room-list'></div>";
+                const roomList = roomListDiv.querySelector('.room-list');
+
+                if (data.data && Array.isArray(data.data)) {
+                    data.data.forEach(room => {
+                        const btn = document.createElement("button");
+                        btn.className = "room-btn";
+                        btn.textContent = `${room.name} (${room.type})`;
+                        btn.onclick = () => {
+                            currentRoomId = room.id;
+                            connectSocketAndSubscribe(currentRoomId);
+                            showNotification(`${room.name} 채팅방에 입장했습니다.`, 'success');
+                        };
+                        roomList.appendChild(btn);
+                    });
+                }
+            }).catch(error => {
+            console.error('채팅방 목록 불러오기 실패: ', error);
+            showNotification('채팅방 목록을 불러오는데 실패했습니다.', 'error');
+        });
+    }
+
+    async function getClubRole(clubId, userId) {
+        const res = await fetch(`${API_BASE_URL}/club/${clubId}/user/${userId}/role`);
+        const data = await res.json();
+        return data.data.role;  // 예: "LEADER", "MANAGER", "MEMBER"
+    }
+
+    function createChatRoom() {
+        const clubId = parseInt(document.getElementById("clubId").value);
+        const name = document.getElementById("roomName").value;
+        const imageUrl = document.getElementById("imageUrl").value;
+        const type = document.getElementById("roomType").value;
+        const userId = parseInt(document.getElementById("userId").value);
+
+        if (!name.trim()) {
+            showNotification('방 이름을 입력해주세요.', 'error');
+            return;
+        }
+
+        fetch(`${API_BASE_URL}/chat/create`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                clubId,
+                name,
+                userId,
+                imageUrl,
+                type
+            })
+        })
+            .then(res => res.json())
+            .then(() => {
+                showNotification("채팅방이 생성되었습니다.", 'success');
+                document.getElementById("roomName").value = "";
+                document.getElementById("imageUrl").value = "";
+                fetchChatRooms();
+            })
+            .catch(error => {
+                console.error('채팅방 생성 실패: ', error);
+                showNotification('채팅방 생성에 실패했습니다.', 'error');
+            });
+    }
+
+    function sendMessage() {
+        const message = document.getElementById("messageInput").value.trim();
+        if (!message || !currentRoomId || !stompClient || !stompClient.connected) return;
+
+        const payload = {
+            roomId: currentRoomId,
+            userId: parseInt(userId),
+            message: message,
+            type: "TALK"
+        };
+        stompClient.send("/chat/message", {}, JSON.stringify(payload));
+        document.getElementById("messageInput").value = "";
+    }
+
+    function showNotification(message, type = 'info') {
+        // 간단한 알림 시스템 (실제로는 더 예쁜 toast 라이브러리를 사용하는 것을 권장)
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            `;
+
+        if (type === 'success') {
+            notification.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+        } else if (type === 'error') {
+            notification.style.background = 'linear-gradient(135deg, #f44336, #da190b)';
+        } else {
+            notification.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+        }
+
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // CSS 애니메이션 추가
+    const style = document.createElement('style');
+    style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>
