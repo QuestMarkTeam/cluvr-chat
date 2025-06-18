@@ -14,7 +14,7 @@ pipeline {
                 ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/id_rsa ${EC2_HOST} '
                 cd ${EC2_DIR} &&
                 git pull origin main &&
-                docker-compose up -d --build cluvr-chat
+                sudo docker-compose up -d --build cluvr-chat
                 '
                 """
             }
