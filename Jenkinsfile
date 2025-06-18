@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     IMAGE_NAME = "cluvr-chat"
-    PORT = "8081"
+    PORT = "8082"
   }
 
   stages {
