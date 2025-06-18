@@ -14,7 +14,8 @@ pipeline {
                 ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/id_rsa ${EC2_HOST} '
                 cd ${EC2_DIR} &&
                 git pull origin main &&
-                sudo docker-compose rm -f spring &&
+                sudo docker-compose rm -f spring || true &&
+                sudo docker container prune -f &&
                 sudo docker-compose up -d --build spring
                 '
                 """
