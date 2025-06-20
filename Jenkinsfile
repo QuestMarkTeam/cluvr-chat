@@ -11,6 +11,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                echo "✅ Checking out source code from GitHub..."
+                checkout scm
+            }
+        }
+
         stage('Build & Deploy only if on develop branch') {
             when {
                 allOf {
@@ -21,24 +28,33 @@ pipeline {
             steps {
                 echo "✅ Deploying develop branch build..."
 
-                sh '''
-                docker build -t $ECR_REPO:$IMAGE_TAG .
-                docker tag $ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                // Build the Docker image
+                script {
+                    sh '''
+                    docker build -t $ECR_REPO:$IMAGE_TAG .
+                    docker tag $ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                    '''
+                }
 
-                aws ecr get-login-password --region $AWS_REGION \
-                    | docker login --username AWS --password-stdin $ECR_REGISTRY
+                // AWS ECR Login and Push Image
+                script {
+                    sh '''
+                    aws ecr get-login-password --region $AWS_REGION \
+                        | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-                docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-                '''
+                    docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                    '''
+                }
 
-                sh """
-                scp -i /var/lib/jenkins/.ssh/id_rsa -r /var/lib/jenkins/workspace/cluvr-chat-dev_develop ubuntu@$CHAT_EC2_IP:/path/to/destination
-                ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
-                cd /path/to/destination
-                docker-compose pull
-                docker-compose up -d
-                EOF
-                """
+                // SCP and SSH to EC2 to deploy
+                script {
+                    sh """
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
+                    docker pull $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                    docker run -d -p 8082:8082 $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                    EOF
+                    """
+                }
             }
         }
     }
