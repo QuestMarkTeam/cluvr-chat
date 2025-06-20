@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-west-2'
-        ECR_REGISTRY = '617373894870.dkr.ecr.us-west-2.amazonaws.com/cluvr-chat'
+        AWS_ACCOUNT_ID = '617373894870'
         ECR_REPO = 'cluvr-chat'
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         IMAGE_TAG = 'latest'
         CHAT_EC2_IP = '54.200.146.243'
     }
@@ -25,7 +26,7 @@ pipeline {
                 aws ecr get-login-password --region $AWS_REGION \
                   | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-                docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                  docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
                 '''
             }
         }
