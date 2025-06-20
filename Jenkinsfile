@@ -2,22 +2,41 @@ pipeline {
     agent any
 
     environment {
-        EC2_HOST = 'ubuntu@54.200.146.243'        // 너의 chat 서버 IP
-        EC2_DIR = '/home/ubuntu/cluvr-chat'       // EC2 내부에서 git clone 받은 위치
+        AWS_REGION = 'us-west-2'
+        ECR_REGISTRY = '617373894870.dkr.ecr.us-west-2.amazonaws.com/cluvr-chat'
+        ECR_REPO = 'cluvr-chat'
+        IMAGE_TAG = 'latest'
+        CHAT_EC2_IP = '54.200.146.243'
     }
 
     stages {
-        stage('Deploy to EC2') {
+        stage('Build Docker Image') {
             steps {
-                // chat 서비스만 재빌드 및 재시작 (다른 컨테이너는 유지)
+                sh '''
+                docker build -t $ECR_REPO:$IMAGE_TAG .
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                sh '''
+                aws ecr get-login-password --region $AWS_REGION \
+                  | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Deploy to Chat EC2') {
+            steps {
                 sh """
-                ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/id_rsa ${EC2_HOST} '
-                cd ${EC2_DIR} &&
-                git pull origin main &&
-                sudo docker-compose rm -f spring || true &&
-                sudo docker container prune -f &&
-                sudo docker-compose up -d --build spring
-                '
+                ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
+                docker-compose pull
+                docker-compose up -d
+                EOF
                 """
             }
         }
