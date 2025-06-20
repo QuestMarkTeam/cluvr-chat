@@ -15,7 +15,6 @@ pipeline {
             when {
                 allOf {
                     branch 'develop'                  // develop 브랜치일 때만
-                    expression { env.CHANGE_ID == null }  // PR이 아닐 때만 (즉, merge 완료된 상황)
                 }
             }
 
