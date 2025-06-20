@@ -10,7 +10,7 @@ spring:
       host: redis
       port: 6379
   datasource: # MySQL : cluvr-chat DB에 root 계정으로 접속, 시간대는 서울로 지정
-    url: jdbc:mysql://mysql:3306/cluvr-chat?allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://mysql:3307/cluvr-chat?allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: 1100
     driver-class-name: com.mysql.cj.jdbc.Driver
