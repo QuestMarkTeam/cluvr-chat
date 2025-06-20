@@ -137,7 +137,7 @@ pipeline {
                         echo 'Deployment completed!'
                     "
                     '''
-                }}
+                }
             }
         }
     }
