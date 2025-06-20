@@ -14,7 +14,7 @@ pipeline {
         stage('Build & Deploy only if on develop branch') {
             when {
                 allOf {
-                    branch 'develop'                  // develop 브랜치일 때만
+                    branch 'develop' // develop 브랜치일 때만
                 }
             }
 
@@ -32,7 +32,9 @@ pipeline {
                 '''
 
                 sh """
+                scp -i /var/lib/jenkins/.ssh/id_rsa -r /var/lib/jenkins/workspace/cluvr-chat-dev_develop ubuntu@$CHAT_EC2_IP:/path/to/destination
                 ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
+                cd /path/to/destination
                 docker-compose pull
                 docker-compose up -d
                 EOF
