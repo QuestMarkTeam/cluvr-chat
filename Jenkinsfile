@@ -52,12 +52,20 @@ pipeline {
                     sh """
                     ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP <<EOF
 
-                    docker ps -a -q --filter "name=cluvr-chat" | xargs --no-run-if-empty docker rm
+                    # 기존 컨테이너 중지 및 삭제 (에러 무시)
+                    docker stop cluvr-chat 2>/dev/null || true
+                    docker rm cluvr-chat 2>/dev/null || true
 
-                    aws ecr get-login-password --region \$AWS_REGION | docker login --username AWS --password-stdin \$ECR_REGISTRY
-                    docker pull \$ECR_REGISTRY/\$ECR_REPO:\$IMAGE_TAG
-                    docker run --rm -d -p 8082:8082 \$ECR_REGISTRY/\$ECR_REPO:\$IMAGE_TAG
-EOF
+                    # ECR 로그인
+                    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                    # 이미지 pull
+                    docker pull $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+
+                    # 컨테이너 실행 (--rm 옵션 제거, 컨테이너 이름 지정)
+                    docker run -d --name cluvr-chat -p 8082:8082 $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+
+                EOF
                     """
                 }
             }
