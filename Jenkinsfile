@@ -13,6 +13,7 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
+                cleanWs() // 작업 공간 비우기
                 echo "✅ Checking out source code from GitHub..."
                 checkout scm
             }
