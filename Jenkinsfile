@@ -49,24 +49,22 @@ pipeline {
 
                 // SCP and SSH to EC2 to deploy
                 script {
-                    sh """
-                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP <<EOF
+                    // 기존 컨테이너 정리
+                    sh '''
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP "docker stop cluvr-chat 2>/dev/null || true"
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP "docker rm cluvr-chat 2>/dev/null || true"
+                    '''
 
-                    # 기존 컨테이너 중지 및 삭제 (에러 무시)
-                    docker stop cluvr-chat 2>/dev/null || true
-                    docker rm cluvr-chat 2>/dev/null || true
+                    // ECR 로그인 및 이미지 pull
+                    sh '''
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY"
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP "docker pull $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG"
+                    '''
 
-                    # ECR 로그인
-                    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-
-                    # 이미지 pull
-                    docker pull $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-
-                    # 컨테이너 실행 (--rm 옵션 제거, 컨테이너 이름 지정)
-                    docker run -d --name cluvr-chat -p 8082:8082 $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-
-                EOF
-                    """
+                    // 컨테이너 실행
+                    sh '''
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP "docker run -d --name cluvr-chat -p 8082:8082 $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG"
+                    '''
                 }
             }
         }
