@@ -11,41 +11,33 @@ pipeline {
     }
 
     stages {
-        stage('Build Develop Only') {
+        stage('Build & Deploy only if on develop branch') {
             when {
-                branch 'develop'
+                allOf {
+                    branch 'develop'                  // develop 브랜치일 때만
+                    expression { env.CHANGE_ID == null }  // PR이 아닐 때만 (즉, merge 완료된 상황)
+                }
             }
-            stages {
-                stage('Build Docker Image') {
-                    steps {
-                        sh '''
-                        docker build -t $ECR_REPO:$IMAGE_TAG .
-                        docker tag $ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-                        '''
-                    }
-                }
 
-                stage('Push to ECR') {
-                    steps {
-                        sh '''
-                        aws ecr get-login-password --region $AWS_REGION \
-                          | docker login --username AWS --password-stdin $ECR_REGISTRY
+            steps {
+                echo "✅ Deploying develop branch build..."
 
-                        docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-                        '''
-                    }
-                }
+                sh '''
+                docker build -t $ECR_REPO:$IMAGE_TAG .
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
 
-                stage('Deploy to Chat EC2') {
-                    steps {
-                        sh """
-                        ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
-                        docker-compose pull
-                        docker-compose up -d
-                        EOF
-                        """
-                    }
-                }
+                aws ecr get-login-password --region $AWS_REGION \
+                    | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+                docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                '''
+
+                sh """
+                ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
+                docker-compose pull
+                docker-compose up -d
+                EOF
+                """
             }
         }
     }
