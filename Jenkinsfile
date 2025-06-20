@@ -49,7 +49,7 @@ pipeline {
                 // SCP and SSH to EC2 to deploy
                 script {
                     sh """
-                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP << 'EOF'
+                    ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP <<EOF
                     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
                     docker pull $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
                     docker run -d -p 8082:8082 $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
