@@ -5,7 +5,7 @@
 **cluvr-chat**은 실시간 채팅, 알림, 외부 API 연동, 인증/인가, 메시지 브로커(Kafka, RabbitMQ), Redis Pub/Sub, MySQL, MongoDB 등 다양한 기술을 활용한 대규모 채팅/알림 백엔드 서버입니다.
 
 ## 전체 구조 다이어그램
-사진 넣을 것이다~~~~~~~~~~~~~
+![image](https://github.com/user-attachments/assets/33f048b8-8450-46de-ae5b-e04eb066b86b)
 
 ---
 
