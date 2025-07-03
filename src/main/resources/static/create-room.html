@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Cluvr - 채팅방 생성</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+    <link rel="stylesheet" href="css/chat.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .create-room-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .create-room-container form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .create-room-container .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .create-room-container label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #222;
+            text-align: left;
+        }
+        
+        .create-room-container input[type="text"],
+        .create-room-container input[type="url"],
+        .create-room-container select {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #dcedc8;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+            box-sizing: border-box;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .create-room-container input[type="text"]:focus,
+        .create-room-container input[type="url"]:focus,
+        .create-room-container select:focus {
+            outline: none;
+            border-color: #a8e6cf;
+            box-shadow: 0 0 0 3px #a8e6cf33;
+        }
+        
+        .create-room-container .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .create-room-container .btn {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            padding: 10px 22px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px #a8e6cf22;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 100%);
+            color: #222;
+        }
+        
+        .btn-primary:hover {
+            background: #dcedc8;
+            color: #222;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px #a8e6cf33;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #222;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .create-room-container .notification {
+            width: 100%;
+            max-width: 350px;
+            min-width: 150px;
+            margin: 0 auto 20px auto;
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: none;
+            font-size: 14px;
+            font-weight: 500;
+            background: #ffebee;   /* 에러일 때 */
+            color: #c62828;        /* 에러일 때 */
+            border: none;          /* 보더 제거 */
+            text-align: left;
+            box-shadow: none;
+        }
+        
+        .create-room-container .notification.success {
+            background: #dcedc8;
+            color: #388e3c;
+        }
+        
+        .create-room-container .notification.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="create-room-container">
+        <div class="header">
+            <h1>🍀 새 채팅방 만들기</h1>
+            <p>클럽 멤버들과 소통할 새로운 공간을 만들어보세요</p>
+        </div>
+        
+        <div id="notification" class="notification"></div>
+        
+        <form id="createRoomForm">
+            <div class="form-group">
+                <label for="roomName">채팅방 이름 *</label>
+                <input type="text" id="roomName" name="roomName" required 
+                       placeholder="예: 프로젝트 회의실, 일상 대화방">
+            </div>
+            
+            <div class="form-group">
+                <label for="roomType">채팅방 타입 *</label>
+                <select id="roomType" name="roomType" required>
+                    <option value="MEMBER">일반 멤버용</option>
+                    <option value="MANAGER">관리자용</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="imageUrl">채팅방 이미지 URL (선택사항)</label>
+                <input type="url" id="imageUrl" name="imageUrl" 
+                       placeholder="https://example.com/image.jpg">
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" onclick="goBack()">취소</button>
+                <button type="submit" class="btn btn-primary">채팅방 생성</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 토큰 관리 함수들
+        function saveToken(token) {
+            sessionStorage.setItem('authToken', token);
+        }
+
+        function getToken() {
+            return sessionStorage.getItem('authToken');
+        }
+
+        function clearToken() {
+            sessionStorage.removeItem('authToken');
+        }
+
+        // 에러 처리 함수
+        function handleApiError(error, defaultMessage) {
+            console.error('API Error:', error);
+            
+            if (error.response?.status === 401) {
+                showNotification('인증이 만료되었습니다. 다시 로그인해주세요.', 'error');
+                clearToken();
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+            } else if (error.response?.status === 403) {
+                showNotification('접근 권한이 없습니다.', 'error');
+            } else if (error.response?.status === 404) {
+                showNotification('요청한 리소스를 찾을 수 없습니다.', 'error');
+            } else if (error.response?.status >= 500) {
+                showNotification('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+            } else {
+                showNotification(defaultMessage, 'error');
+            }
+        }
+
+        // API 엔드포인트
+        const API_CHAT_URL = 'http://localhost:8082';
+        
+        // 페이지 로드 시 초기화
+        window.addEventListener('DOMContentLoaded', () => {
+            // URL에서 clubId와 token 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            const clubId = urlParams.get('clubId');
+            const token = urlParams.get('token');
+            
+            if (!clubId || !token) {
+                showNotification('필수 정보가 누락되었습니다.', 'error');
+                return;
+            }
+            
+            // 토큰을 sessionStorage에 저장
+            saveToken(token);
+            
+            // 폼 제출 이벤트 리스너
+            document.getElementById('createRoomForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                createChatRoom(clubId, token);
+            });
+        });
+        
+        // 채팅방 생성 함수
+        async function createChatRoom(clubId, token) {
+            const roomName = document.getElementById('roomName').value.trim();
+            const roomType = document.getElementById('roomType').value;
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            
+            if (!roomName) {
+                showNotification('채팅방 이름을 입력해주세요.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_CHAT_URL}/api/clubs/${clubId}/chat/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: roomName,
+                        imageUrl: imageUrl || '',
+                        type: roomType
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showNotification('채팅방이 성공적으로 생성되었습니다!', 'success');
+                    setTimeout(() => {
+                        // 채팅 페이지로 돌아가기
+                        window.location.href = `${API_CHAT_URL}/chat.html?clubId=${clubId}&token=${encodeURIComponent(token)}`;
+                    }, 1500);
+                } else {
+                    showNotification(result.message || '채팅방 생성에 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                console.error('채팅방 생성 오류:', error);
+                handleApiError(error, '채팅방 생성에 실패했습니다.');
+            }
+        }
+        
+        // 뒤로가기 함수
+        function goBack() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const clubId = urlParams.get('clubId');
+            const token = getToken() || urlParams.get('token');
+            
+            if (clubId && token) {
+                window.location.href = `${API_CHAT_URL}/chatroomlist.html?clubId=${clubId}&token=${encodeURIComponent(token)}`;
+            } else {
+                window.history.back();
+            }
+        }
+        
+        // 알림 표시 함수
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html> 

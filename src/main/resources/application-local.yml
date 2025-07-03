@@ -1,0 +1,95 @@
+server:
+  error:
+    include-message: always
+  port: 8082
+  tomcat: # 톰캣 설정
+    connection-timeout: 20000 # 20초
+    max-connections: 8192 # 8192개
+    accept-count: 100 # 100개
+    threads: # 스레드 풀 설정
+      max: 200 # 200개
+      min-spare: 10 # 10개
+spring:
+  env-file: .env
+  security: # 보안 설정
+    oauth2: # OAuth2 설정
+      resourceserver: # 리소스 서버 설정
+        jwt: # JWT 설정
+          issuer-uri: https://cognito-idp.us-west-2.amazonaws.com/${USER_POOL_ID}
+  config:
+    activate: # 프로필 활성화
+      on-profile: local
+  application: # 애플리케이션 설정
+    name: cluvr-chat
+  data:
+    mongodb: # MongoDB 설정
+      database: ${MONGODB_DATABASE}
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+    redis: # Redis 설정
+      host: redis
+      port: ${REDIS_PORT}
+  datasource: # 데이터소스 설정
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa: # JPA 설정
+    hibernate: # 하이버네이트 설정
+      ddl-auto: update # 자동 생성
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  kafka: # Kafka 설정
+    listener:
+      type: single
+      ack-mode: manual_immediate
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer: # 컨슈머 설정
+      group-id: ${KAFKA_CONSUMER_GROUP_ID} # 컨슈머 그룹 ID
+      auto-offset-reset: ${KAFKA_CONSUMER_AUTO_OFFSET_RESET} # 오프셋 리셋 정책
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer # 키 역직렬화
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer # 값 역직렬화
+    producer: # 프로듀서 설정
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer # 키 직렬화
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer # 값 직렬화
+
+external: # 외부 설정
+  club_api: # 클럽 API 설정
+    base_url: ${EXTERNAL_CLUB_API_BASE_URL:http://host.docker.internal:80} # 클럽 API 기본 URL
+    # base_url: http://44.239.99.137:80
+
+logging: # 로깅 설정
+  level: # 로깅 레벨 설정
+    root: ${LOGGING_LEVEL_ROOT:DEBUG} # 루트 레벨
+    org.springframework: ${LOGGING_LEVEL_SPRING:DEBUG} # 스프링 레벨
+    # org.hibernate.SQL: DEBUG
+    # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.kafka: DEBUG
+    org.apache.kafka: DEBUG
+
+app: # 앱 설정
+  user-dummy-external: ${APP_USER_DUMMY_EXTERNAL:false} # 사용자 더미 외부 설정
+  cors: # CORS 설정
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS} # 허용된 원본 도메인
+  kafka: # Kafka 재시도 설정
+    max-retry-count: ${APP_KAFKA_MAX_RETRY_COUNT:3} # 최대 재시도 횟수
+    retry-delay-multiplier: ${APP_KAFKA_RETRY_DELAY_MULTIPLIER:2} # 재시도 지연 배수 (지수 백오프)
+
+jwt: # JWT 설정
+  secret: # 시크릿 키
+    key: ${JWT_SECRET_KEY} # 시크릿 키
+  expirationMs: ${JWT_EXPIRATION_MS} # 만료 시간
+cognito:
+  userPoolId: ${USER_POOL_ID} # 사용자 풀 ID
+  clientId: ${CLIENT_ID} # 클라이언트 ID
+  jwkSetUri: https://cognito-idp.us-west-2.amazonaws.com/${USER_POOL_ID:us-west-2_Nt2iRhUaQ}/.well-known/jwks.json # JWT 세트 URI
+  clientSecret: ${CLIENT_SECRET} # 클라이언트 시크릿
+cloud: # 클라우드 설정
+  aws: # AWS 설정
+    region: # 리전
+      static: us-west-2 # 리전
+    credentials: # 자격 증명
+      access-key: ${ACCESS_AWS} # 액세스 키
+      secret-key: ${SECRET_AWS} # 시크릿 키
