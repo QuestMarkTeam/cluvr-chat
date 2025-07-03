@@ -10,7 +10,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import com.example.chat.dto.request.ChatMessageRequestDto;
@@ -30,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class KafkaChatConsumer {
 	private final ChatLogRepository chatLogRepository;
 	private final ObjectMapper objectMapper;
-	private final SimpMessagingTemplate messagingTemplate;
 	private final KafkaTemplate<String, String> kafkaTemplate;
 	private final StringRedisTemplate redisTemplate;
 

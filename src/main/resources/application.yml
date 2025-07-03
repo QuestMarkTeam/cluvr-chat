@@ -42,6 +42,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
   kafka: # Kafka 설정
+    listener:
+      type: single
+      ack-mode: manual_immediate
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer: # 컨슈머 설정
       group-id: ${KAFKA_CONSUMER_GROUP_ID} # 컨슈머 그룹 ID
@@ -54,7 +57,7 @@ spring:
 
 external: # 외부 설정
   club_api: # 클럽 API 설정
-    base_url: ${EXTERNAL_CLUB_API_BASE_URL:http://host.docker.internal:80} # 클럽 API 기본 URL
+    base_url: ${EXTERNAL_CLUB_API_BASE_URL} # 클럽 API 기본 URL
     # base_url: http://44.239.99.137:80
 
 logging: # 로깅 설정
