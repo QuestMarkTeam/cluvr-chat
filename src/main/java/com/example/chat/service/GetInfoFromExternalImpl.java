@@ -43,6 +43,8 @@ public class GetInfoFromExternalImpl implements GetInfoFromExternal {
 		}
 		String sub = jwt.getSubject();
 		Long userId = getUserIdFromSub(sub);
+		log.info("subsubsubsub: {}", sub);
+		log.info("userIduserId: {}", userId);
 		if (userId == null) {
 			throw new BusinessException(ResponseCode.AUTHENTICATION_FAILED, "유저 정보를 찾을 수 없습니다.");
 		}
