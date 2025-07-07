@@ -206,7 +206,7 @@ pipeline {
                     sh '''
                     ssh -i /var/lib/jenkins/.ssh/id_rsa ubuntu@$CHAT_EC2_IP "
                         echo '🚀 새로운 cluvr-chat 앱 시작 중...'
-                        docker run -d --name cluvr-chat --network cluvr-net -p 80:8082 --restart unless-stopped $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+                        docker run -d --name cluvr-chat --network cluvr-net -p 80:8082 --restart unless-stopped --env-file $ENV_PATH/.env $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
                         echo '🎉 배포 완료! 앱이 실행 중입니다.'
                         echo '📍 접속 주소: http://54.200.146.243'
                     "
