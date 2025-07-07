@@ -41,6 +41,7 @@ pipeline {
                     string(credentialsId: 'CHAT_KAFKA_PORT', variable: 'KAFKA_PORT'),
                     string(credentialsId: 'CHAT_KAFKA_UI_PORT', variable: 'KAFKA_UI_PORT'),
                     string(credentialsId: 'CHAT_ECR_IMAGE_URI', variable: 'ECR_IMAGE_URI'),
+                    string(credentialsId: 'APP_CORS_ALLOWED_ORIGINS', variable: 'APP_CORS_ALLOWED_ORIGINS'),
                 ]) {
                     sh """
                         echo "JWT_SECRET_KEY=${JWT_SECRET_KEY}" > .env
