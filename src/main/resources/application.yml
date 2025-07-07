@@ -16,9 +16,11 @@ spring:
       resourceserver: # 리소스 서버 설정
         jwt: # JWT 설정
           issuer-uri: https://cognito-idp.us-west-2.amazonaws.com/${USER_POOL_ID}
-  config:
-    activate: # 프로필 활성화
-      on-profile: local
+#  config:
+#    activate: # 프로필 활성화
+#      on-profile: local
+#    profiles:
+#      active: local
   application: # 애플리케이션 설정
     name: cluvr-chat
   data:
