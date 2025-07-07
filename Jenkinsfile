@@ -68,6 +68,10 @@ pipeline {
                         echo "KAFKA_PORT=${KAFKA_PORT}" >> .env
                         echo "KAFKA_UI_PORT=${KAFKA_UI_PORT}" >> .env
                         echo "ECR_IMAGE_URI=${ECR_IMAGE_URI}" >> .env
+                        echo "APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS}" >> .env
+                        echo "JWT_EXPIRATION_MS=86400000" >> .env
+                        echo "LOGGING_LEVEL_ROOT=INFO" >> .env
+                        echo "LOGGING_LEVEL_SPRING=INFO" >> .env
 
                         scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/id_rsa .env ubuntu@${CHAT_EC2_IP}:${ENV_PATH}
                     """
